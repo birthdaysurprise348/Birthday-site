@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anushka's 18th Birthday</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            will-change: transform;
+        }
+
+        /* Background Canvas for animations - text ke peeche */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .content {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        /* UNIQUE TRANSITION EFFECTS FOR EACH PAGE */
+        .page1.active { animation: slideInTop 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .page2.active { animation: zoomIn 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .page3.active { animation: slideInRight 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .page4.active { animation: fadeSlideUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .page5.active { animation: heartBeatIn 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+
+        @keyframes slideInTop {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes zoomIn {
+            to { opacity: 1; transform: scale(1) rotateX(0); }
+        }
+
+        @keyframes slideInRight {
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        @keyframes fadeSlideUp {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes heartBeatIn {
+            0% { opacity: 0; transform: scale(0.5) rotate(-180deg); }
+            50% { transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        /* GLOWING TEXTS - SAB TEXT GLOWING */
+        .glow-text {
+            color: #fff;
+            text-shadow: 
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 15px #ff6b9d,
+                0 0 20px #ff6b9d,
+                0 0 30px #ff6b9d,
+                0 0 40px #ff8e8e;
+            animation: textGlow 2s ease-in-out infinite alternate;
+            font-weight: 700;
+            will-change: text-shadow;
+        }
+
+        @keyframes textGlow {
+            from { 
+                text-shadow: 
+                    0 0 5px #fff,
+                    0 0 10px #fff,
+                    0 0 20px #ff6b9d,
+                    0 0 30px #ff6b9d;
+            }
+            to { 
+                text-shadow: 
+                    0 0 10px #fff,
+                    0 0 20px #fff,
+                    0 0 30px #ff6b9d,
+                    0 0 40px #ff6b9d,
+                    0 0 50px #ff8e8e;
+            }
+        }
+
+        .birthday-title {
+            font-size: clamp(3.5rem, 12vw, 9rem);
+            margin-bottom: 20px;
+            line-height: 0.9;
+        }
+
+        .name-text {
+            font-size: clamp(2rem, 6vw, 4rem);
+            margin-bottom: 60px;
+            animation-delay: 0.3s;
+        }
+
+        .sweet-line {
+            font-size: clamp(1.4rem, 4.5vw, 2.5rem);
+            line-height: 1.5;
+            max-width: 90%;
+            margin: 40px 0;
+            animation: fadeInUp 1s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .wishes {
+            font-size: clamp(1.6rem, 5vw, 3rem);
+            line-height: 1.4;
+            margin: 40px 0;
+        }
+
+        .wishes span {
+            display: block;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .wishes span:nth-child(1) { animation-delay: 0.3s; }
+        .wishes span:nth-child(2) { animation-delay: 0.6s; }
+
+        .one-last-step {
+            font-size: 1.4rem;
+            color: #ffeb3b;
+            margin: 40px 0 20px 0;
+            animation: fadeInUp 1s ease-out 0.8s forwards;
+            opacity: 0;
+        }
+
+        /* BUTTONS WITH CLICK ANIMATION */
+        .btn {
+            background: linear-gradient(45deg, #ff6b9d, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 
+                0 10px 30px rgba(255,107,157,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.3);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            will-change: transform, box-shadow;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 
+                0 20px 40px rgba(255,107,157,0.6),
+                inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:active {
+            transform: translateY(-4px) scale(1.02);
+            animation: btnPulse 0.2s ease-out;
+        }
+
+        @keyframes btnPulse {
+            0% { transform: scale(1.02); }
+            50% { transform: scale(0.98); }
+            100% { transform: scale(1.02); }
+        }
+
+        /* PASSWORD SECTION */
+        .password-container {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            padding: 50px 30px;
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .password-hint {
+            color: #ffeb3b;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .password-small-hint {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+
+        .password-input {
+            padding: 20px 30px;
+            font-size: 1.5rem;
+            border: 3px solid rgba(255,255,255,0.4);
+            border-radius: 20px;
+            background: rgba(255,255,255,0.95);
+            text-align: center;
+            width: 100%;
+            margin: 25px 0;
+            font-weight: 600;
+            letter-spacing: 2px;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #ff6b9d;
+            box-shadow: 0 0 30px rgba(255,107,157,0.5);
+            transform: scale(1.03);
+        }
+
+        .error-shake {
+            animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        .final-message {
+            font-size: clamp(1.4rem, 4vw, 2.2rem);
+            line-height: 1.6;
+            max-width: 700px;
+            margin: 40px 0;
+        }
+
+        .final-highlight {
+            color: #ffeb3b;
+            font-size: 1.3em;
+            font-weight: 800;
+            display: block;
+            margin: 20px 0;
+            animation: bounceGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes bounceGlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    
+    <div class="content">
+        <!-- Page 1 -->
+        <div class="page page1 active" id="page1">
+            <div class="glow-text birthday-title">Happy 18th Birthday</div>
+            <div class="glow-text name-text">ANUSHKA</div>
+            <button class="btn" onclick="nextPage()">NEXT</button>
+        </div>
+
+        <!-- Page 2 -->
+        <div class="page page2" id="page2">
+            <div class="glow-text sweet-line">
+                I don't know how to plan something big🥲,<br>
+                💕hope this year brings you everything you quietly wish for..💕
+            </div>
+            <button class="btn" onclick="nextPage()">NEXT</button>
+        </div>
+
+        <!-- Page 3 -->
+        <div class="page page3" id="page3">
+            <div class="glow-text wishes">
+                <span>Wishing you a really happy day 💛</span>
+                <span>hope it brings you lots of joys 😊</span>
+            </div>
+            <div>
+                <div class="glow-text one-last-step">one last step</div>
+                <button class="btn" onclick="nextPage()">unlock your surprise</button>
+            </div>
+        </div>
+
+        <!-- Page 4: Password -->
+        <div class="page page4" id="page4">
+            <div class="password-container">
+                <div class="glow-text password-hint">🔐 Enter password to unlock surprise</div>
+                <div class="password-small-hint">Hint: it's your birthday ✨</div>
+                <input type="password" class="password-input" id="passwordInput" placeholder="Enter password..." maxlength="8">
+                <button class="btn" onclick="checkPassword()" style="width: 100%; margin-top: 20px;">UNLOCK</button>
+            </div>
+        </div>
+
+        <!-- Page 5 -->
+        <div class="page page5" id="page5">
+            <div class="glow-text final-message">
+                That's it… just wanted to make you smile 😊<br><br>
+                <span class="final-highlight">Happy Birthday once again 💖</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Smooth Background Animations (text ke peeche)
+        let particles = [];
+        let balloons = [];
+        let stars = [];
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 10;
+                this.size = Math.random() * 4 + 1;
+                this.speedY = Math.random() * 2 + 0.5;
+                this.opacity = Math.random() * 0.7 + 0.3;
+            }
+            update() {
+                this.y -= this.speedY;
+                if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = '#ff6b9d';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateBackground() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                if (p.y < 0) particles[i] = new Particle();
+            });
+            
+            requestAnimationFrame(animateBackground);
+        }
+
+        // Page Navigation
+        function nextPage() {
+            document.getElementById(`page${currentPage}`).classList.remove('active');
+            
+            // Button click ripple effect
+            confetti({
+                particleCount: 30,
+                spread: 50,
+                origin: { x: 0.5, y: 0.7 },
+                colors: ['#ff6b9d', '#ff8e8e', '#fff']
+            });
+            
+            currentPage++;
+            document.getElementById(`page${currentPage}`).classList.add('active');
+        }
+
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            const input = document.getElementById('passwordInput');
+            
+            if (password === '03042008') {
+                // Success - Big celebration
+                for(let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        confetti({
+                            particleCount: 80,
+                            spread: 80,
+                            origin: { y: 0.6 }
+                        });
+                    }, i * 200);
+                }
+                nextPage();
+            } else {
+                input.classList.add('error-shake');
+                input.style.borderColor = '#ff4757';
+                input.placeholder = 'Oops! Try again 😊';
+                setTimeout(() => {
+                    input.classList.remove('error-shake');
+                    input.style.borderColor = 'rgba(255,255,255,0.4)';
+                    input.placeholder = 'Enter password...';
+                }, 400);
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('keydown', (e) => {
+            if (currentPage === 4 && e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Auto-focus password input
+        document.addEventListener('transitionend', (e) => {
+            if (e.target.id === 'page4' && currentPage === 4) {
+                document.getElementById('passwordInput').focus();
+            }
+        });
+
+        // Initialize
+        initParticles();
+        animateBackground();
+    </script>
+</body>
+</html>
